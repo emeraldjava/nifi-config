@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.hermannpencole</groupId>
+    <groupId>io.github.emeraldjava</groupId>
     <artifactId>nifi-deploy-config</artifactId>
-    <version>1.1.37-SNAPSHOT</version>
+    <version>1.2.0-RC1</version>
     <packaging>jar</packaging>
     <name>Deploy Nifi Configuration</name>
-    <url>https://github.com/hermannpencole/nifi-config</url>
+    <url>https://github.com/emeraldjava/nifi-config</url>
 	<description>Automatically deploy and configure templates on Nifi</description>
  
     <properties>
@@ -88,21 +88,21 @@
     </developer>
   </developers>
 
-<distributionManagement>
-  <snapshotRepository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-  </snapshotRepository>
-  <repository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  </repository>
-</distributionManagement> 
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
 
     <scm>
-        <connection>scm:git:https://hermannpencole@github.com/hermannpencole/nifi-config.git</connection>
-        <developerConnection>scm:git:https://hermannpencole@github.com/hermannpencole/nifi-config.git</developerConnection>
-        <url>https://github.com/hermannpencole/nifi-config</url>
+        <connection>scm:git:https://emeraldjava@github.com/emeraldjava/nifi-config.git</connection>
+        <developerConnection>scm:git:https://emeraldjava@github.com/emeraldjava/nifi-config.git</developerConnection>
+        <url>https://github.com/emeraldjava/nifi-config</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -187,6 +187,32 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 	
@@ -198,7 +224,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
+            <version>1.6</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>

@@ -131,12 +131,7 @@ public class TemplateService {
                 }
             }
         }
-
         processGroupService.delete(processGroupFlow.get().getProcessGroupFlow().getId());
-
     }
-
-
-
 
 }
