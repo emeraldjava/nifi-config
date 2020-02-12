@@ -10,9 +10,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -27,7 +27,7 @@ import static com.github.hermannpencole.nifi.swagger.client.model.ControllerServ
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class UpdateProcessorService {
 
     /**
@@ -35,22 +35,22 @@ public class UpdateProcessorService {
      */
     private final static Logger LOG = LoggerFactory.getLogger(UpdateProcessorService.class);
 
-    @Inject
+    @Autowired
     private ProcessGroupService processGroupService;
 
-    @Inject
+    @Autowired
     private ControllerServicesService controllerServicesService;
 
-    @Inject
+    @Autowired
     private CreateRouteService createRouteService;
 
-    @Inject
+    @Autowired
     private FlowApi flowapi;
 
-    @Inject
+    @Autowired
     private ConnectionsUpdater connectionsUpdater;
 
-    @Inject
+    @Autowired
     private ProcessorsApi processorsApi;
 
     /**
@@ -203,7 +203,7 @@ public class UpdateProcessorService {
      * @param newControllerServiceId
      * @param oldControllersService
      */
-    private void updateOldReference(Collection<ControllerServiceEntity> oldControllersService, String newControllerServiceId, String clientId) {
+    private void updateOldReference(Collection<ControllerServiceEntity> oldControllersService, String newControllerServiceId, String clientId) throws ApiException {
         for (ControllerServiceEntity oldControllerService : oldControllersService) {
             for (ControllerServiceReferencingComponentEntity component : oldControllerService.getComponent().getReferencingComponents()) {
                 if (component.getComponent().getReferenceType().equals(PROCESSOR)) {
@@ -220,7 +220,7 @@ public class UpdateProcessorService {
         }
     }
 
-    private void stopOldReference(Collection<ControllerServiceEntity> oldControllersService) {
+    private void stopOldReference(Collection<ControllerServiceEntity> oldControllersService) throws ApiException {
         for (ControllerServiceEntity oldControllerService : oldControllersService) {
             try {
                 //maybe there are already remove
@@ -239,7 +239,7 @@ public class UpdateProcessorService {
         }
     }
 
-    private void removeOldReference(Collection<ControllerServiceEntity> oldControllersService) {
+    private void removeOldReference(Collection<ControllerServiceEntity> oldControllersService) throws ApiException {
         for (ControllerServiceEntity oldControllerService : oldControllersService) {
             try {
                 //maybe there are already remove

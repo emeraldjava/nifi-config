@@ -1,5 +1,6 @@
 package com.github.hermannpencole.nifi.config.service;
 
+import com.github.hermannpencole.nifi.config.NifiClientProperties;
 import com.github.hermannpencole.nifi.config.model.ConfigException;
 import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
@@ -8,17 +9,16 @@ import com.github.hermannpencole.nifi.swagger.client.model.ProcessorDTO;
 import com.github.hermannpencole.nifi.swagger.client.model.ProcessorEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 /**
  * Class that offer service for process group
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ProcessorService {
 
     /**
@@ -26,15 +26,10 @@ public class ProcessorService {
      */
     private final static Logger LOG = LoggerFactory.getLogger(ProcessorService.class);
 
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
+    @Autowired
+    private NifiClientProperties properties;
 
-    @Named("interval")
-    @Inject
-    public Integer interval;
-
-    @Inject
+    @Autowired
     private ProcessorsApi processorsApi;
 
     /**
@@ -43,7 +38,7 @@ public class ProcessorService {
      * @param processor
      * @param state
      */
-    public void setState(ProcessorEntity processor, ProcessorDTO.StateEnum state) {
+    public void setState(ProcessorEntity processor, ProcessorDTO.StateEnum state) { //throws ApiException {
         //how obtain state of and don't have this bullshit trick
         //trick for don't have error : xxxx cannot be started because it is not stopped. Current state is STOPPING
         if (processor.getComponent().getState().equals(ProcessorDTO.StateEnum.DISABLED)) {
@@ -79,9 +74,21 @@ public class ProcessorService {
             }
         }
 
+
+
+
         FunctionUtils.runWhile(()-> {
             LOG.info(" {} ({}) waiting for {}", processor.getComponent().getName() ,processor.getId(), state);
-            ProcessorEntity processorEntity= processorsApi.getProcessor(processor.getId());
+
+            ProcessorEntity processorEntity = null;
+            try {
+                processorEntity = processorsApi.getProcessor(processor.getId());
+            } catch(ApiException a) {
+                a.printStackTrace();
+                return false;
+            }
+
+
             boolean reallyStopped = isReallyStopped(processorEntity);
             LOG.info(" {} ({}) is {} (have thread active : {}) ", processorEntity.getComponent().getName(), processorEntity.getId(), processorEntity.getComponent().getState(), !reallyStopped);
             if ( (state.equals(ProcessorDTO.StateEnum.STOPPED) && state.equals(processorEntity.getComponent().getState()) && isReallyStopped(processorEntity))
@@ -89,7 +96,8 @@ public class ProcessorService {
                 return false;
             }
             return true;
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
+
 
     }
 
@@ -117,8 +125,7 @@ public class ProcessorService {
         }
     }
 
-    public ProcessorEntity getById(String id) {
+    public ProcessorEntity getById(String id) throws ApiException {
         return processorsApi.getProcessor(id);
     }
-
 }

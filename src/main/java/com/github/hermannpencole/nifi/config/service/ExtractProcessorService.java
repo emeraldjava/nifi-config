@@ -6,14 +6,13 @@ import com.github.hermannpencole.nifi.config.model.GroupProcessorsEntity;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.FlowApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
-import com.google.common.base.Joiner;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,19 +22,18 @@ import java.util.stream.Collectors;
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ExtractProcessorService {
-
 
     /**
      * The logger.
      */
     private final static Logger LOG = LoggerFactory.getLogger(ExtractProcessorService.class);
 
-    @Inject
+    @Autowired
     private ProcessGroupService processGroupService;
 
-    @Inject
+    @Autowired
     private FlowApi flowapi;
 
     /**
@@ -83,8 +81,8 @@ public class ExtractProcessorService {
 
         Map<String, Integer> duplicateProcessorNames = detectDuplicateProcessorNames(processors);
         if (!duplicateProcessorNames.isEmpty()) {
-            String messageFormatted = "Duplicate processor names detected: "
-                    + Joiner.on(", ").withKeyValueSeparator(" used times: ").join(duplicateProcessorNames);
+            String messageFormatted = "Duplicate processor names detected: ";
+//                    + Joiner.on(", ").withKeyValueSeparator(" used times: ").join(duplicateProcessorNames);
 
             if (failOnDuplicateNames) {
                 throw new ConfigException(messageFormatted);

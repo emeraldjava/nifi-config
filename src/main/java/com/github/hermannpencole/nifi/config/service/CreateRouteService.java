@@ -8,8 +8,8 @@ import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,21 +24,21 @@ public class CreateRouteService {
    */
   private final static Logger LOG = LoggerFactory.getLogger(CreateRouteService.class);
 
-  @Inject
+  @Autowired
   private PortService portService;
 
-  @Inject
+  @Autowired
   private ProcessGroupsApi processGroupsApi;
 
-  @Inject
+  @Autowired
   private ConnectableService connectableService;
 
-  @Inject
+  @Autowired
   private FlowApi flowapi;
 
   private String clientId;
 
-  private String getClientId() {
+  private String getClientId() throws ApiException {
     if (clientId == null) {
       clientId = flowapi.generateClientId();
       LOG.debug("client id generated {}", clientId);
@@ -57,15 +57,25 @@ public class CreateRouteService {
     }
   }
 
-  private ProcessGroupFlowEntity advanceToNextProcessGroup( final String processGroupName, final ProcessGroupFlowEntity flowEntity) {
+  private ProcessGroupFlowEntity advanceToNextProcessGroup(final String processGroupName, final ProcessGroupFlowEntity flowEntity) throws ApiException {
     return findByComponentName(
             flowEntity.getProcessGroupFlow().getFlow().getProcessGroups(), processGroupName)
-            .map(flowEntityChild -> flowapi.getFlow(flowEntityChild.getId()))
+            //.map(flowEntityChild -> flowapi.getFlow(flowEntityChild.getId()))
+            .map(flowEntityChild -> getProcessGroupFlowEntity(flowEntityChild))
             .orElseThrow(() -> new ConfigException("Couldn't find process group '" + processGroupName + "'"));
   }
 
+  private ProcessGroupFlowEntity getProcessGroupFlowEntity(ProcessGroupEntity processGroupEntity) {
+    try {
+      return flowapi.getFlow(processGroupEntity.getId());
+    } catch(ApiException apie){
+      apie.printStackTrace();
+      return null;
+    }
+  }
+
   private PortEntity createOrFindPort(final String destinationInputPort, final ConnectableDTO.TypeEnum connectableType,
-          final ProcessGroupFlowEntity flowEntity) {
+          final ProcessGroupFlowEntity flowEntity) throws ApiException {
     ProcessGroupFlowDTO processGroupFlow = flowEntity.getProcessGroupFlow();
     Optional<PortEntity> port = portService.findPortEntityByName(processGroupFlow.getFlow(), destinationInputPort);
     if (port.isPresent()) {
@@ -75,7 +85,7 @@ public class CreateRouteService {
     }
   }
 
-  private String determineConnectionLocation(final PortEntity source, final PortEntity destination) {
+  private String determineConnectionLocation(final PortEntity source, final PortEntity destination) throws ApiException {
     switch (source.getComponent().getType()) {
       case OUTPUT_PORT:
         switch (destination.getComponent().getType()) {
@@ -92,11 +102,10 @@ public class CreateRouteService {
             return source.getComponent().getParentGroupId();
         }
     }
-
     throw new ConfigException("Creating connections between types other than local ports not supported");
   }
 
-  private ConnectionEntity createConnectionEntity(final PortEntity source, final PortEntity dest) {
+  private ConnectionEntity createConnectionEntity(final PortEntity source, final PortEntity dest) throws ApiException {
     ConnectionEntity connectionEntity = new ConnectionEntity();
     connectionEntity.setRevision(new RevisionDTO());
     connectionEntity.getRevision().setVersion(0L);
@@ -160,7 +169,7 @@ public class CreateRouteService {
     return connectableDTOs;
   }
 
-  private void createConnections(final ListIterator<PortEntity> connectables) {
+  private void createConnections(final ListIterator<PortEntity> connectables) throws ApiException {
     if (!connectables.hasNext()) return;
 
     PortEntity current;
@@ -179,10 +188,18 @@ public class CreateRouteService {
   }
 
   private void startPorts(Stream<PortEntity> connectables) {
-    connectables.map(port -> portService.getById(port.getId(), port.getComponent().getType()))
-            .forEach(port -> portService.setState(port, PortDTO.StateEnum.RUNNING ));
+    connectables.map(portEntity -> getPortEntity(portEntity))
+            .forEach(portEntity -> portService.setState(portEntity, PortDTO.StateEnum.RUNNING));
   }
 
+  private PortEntity getPortEntity(PortEntity portEntity) {
+    try {
+      return portService.getById(portEntity.getId(), portEntity.getComponent().getType());
+    }catch (ApiException apie){
+      apie.printStackTrace();
+      return null;
+    }
+  }
   /**
    * Create a route in NiFi composed of ports and connections.
    *
@@ -195,7 +212,7 @@ public class CreateRouteService {
           final String name,
           final List<String> sourcePath,
           final List<String> destinationPath,
-          final boolean startRoute) {
+          final boolean startRoute) throws ApiException {
     ListIterator<String> source = sourcePath.listIterator();
     ListIterator<String> destination = destinationPath.listIterator();
 
@@ -227,7 +244,7 @@ public class CreateRouteService {
    * @param optionNoStartProcessors Whether or not to start ports created along the route
    * @throws IOException If repository file cannot be found
    */
-  public void createRoutes(List<ConnectionPort> connections, boolean optionNoStartProcessors) throws IOException {
+  public void createRoutes(List<ConnectionPort> connections, boolean optionNoStartProcessors) throws ApiException {
       for (ConnectionPort routeConnectionEntity : connections) {
         createRoute(
                 routeConnectionEntity.getName(),

@@ -1,6 +1,6 @@
 package com.github.hermannpencole.nifi.config.service;
 
-import com.github.hermannpencole.nifi.config.model.TimeoutException;
+import com.github.hermannpencole.nifi.config.NifiClientProperties;
 import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.ConnectionsApi;
@@ -10,10 +10,9 @@ import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.List;
 
 /**
@@ -21,52 +20,42 @@ import java.util.List;
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ConnectionService {
 
+    @Autowired
+    private NifiClientProperties properties;
 
     /**
      * The logger.
      */
     private final static Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
 
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
-
-    @Named("interval")
-    @Inject
-    public Integer interval;
-
-    @Named("forceMode")
-    @Inject
-    public Boolean forceMode;
-
-    @Inject
+    @Autowired
     private ConnectionsApi connectionsApi;
 
-    @Inject
+    @Autowired
     private FlowfileQueuesApi flowfileQueuesApi;
 
-    @Inject
+    @Autowired
     private FlowApi flowApi;
 
-    @Inject
+    @Autowired
     private ProcessGroupsApi processGroupsApi;
 
-    @Inject
+    @Autowired
     private ProcessorService processorService;
 
-    @Inject
+    @Autowired
     private PortService portService;
 
-    private boolean stopProcessorOrPort(String id) {
+    private boolean stopProcessorOrPort(String id) throws ApiException {
         ProcessorEntity processorEntity = null;
-        try {
+        //try {
             processorEntity = processorService.getById(id);
-        } catch (ApiException e) {
+        //} catch (ApiException e) {
             //do nothing
-        }
+        //}
         if (processorEntity != null) {
             processorService.setState(processorEntity, ProcessorDTO.StateEnum.STOPPED);
             return true;
@@ -95,30 +84,50 @@ public class ConnectionService {
     }
 
     public void waitEmptyQueue(ConnectionEntity connectionEntity) throws ApiException {
-        try {
+//        try {
             FunctionUtils.runWhile(() -> {
-                ConnectionEntity connection = connectionsApi.getConnection(connectionEntity.getId());
+                ConnectionEntity connection = getConnectionEntity(connectionEntity.getId());
                 LOG.info(" {} : there is {} FlowFile ({} bytes) on the queue ", connection.getId(), connection.getStatus().getAggregateSnapshot().getQueuedCount(), connection.getStatus().getAggregateSnapshot().getQueuedSize());
                 return !connection.getStatus().getAggregateSnapshot().getQueuedCount().equals("0");
-            }, interval, timeout);
-        } catch (TimeoutException e) {
+            }, properties.interval, properties.timeout);
+  //      } catch (ApiException e) {
             //empty queue if forced mode
-            if (forceMode) {
+            if (properties.forceMode) {
                 DropRequestEntity dropRequest = flowfileQueuesApi.createDropRequest(connectionEntity.getId());
                 FunctionUtils.runWhile(() -> {
-                    DropRequestEntity drop = flowfileQueuesApi.getDropRequest(connectionEntity.getId(), dropRequest.getDropRequest().getId());
+                    DropRequestEntity drop = getDropEntity(connectionEntity.getId(), dropRequest.getDropRequest().getId());
                     return !drop.getDropRequest().getFinished();
-                }, interval, timeout);
+                }, properties.interval, properties.timeout);
                 LOG.info(" {} : {} FlowFile ({} bytes) were removed from the queue", connectionEntity.getId(), dropRequest.getDropRequest().getCurrentCount(), dropRequest.getDropRequest().getCurrentSize());
                 flowfileQueuesApi.removeDropRequest(connectionEntity.getId(), dropRequest.getDropRequest().getId());
-            } else {
-                LOG.error(e.getMessage(), e);
-                throw e;
             }
+//            else {
+//                LOG.error(e.getMessage(), e);
+//                throw e;
+//            }
+        //}
+    }
+
+    private ConnectionEntity getConnectionEntity(String connectionEntityId) {
+        try {
+            return connectionsApi.getConnection(connectionEntityId);
+        } catch (ApiException apie){
+            LOG.error("ConnectionService.getConnectionEntity()",apie.getMessage());
+            return null;
         }
     }
 
-    public void removeExternalConnections(ProcessGroupEntity processGroupEntity) {
+    private DropRequestEntity getDropEntity(String connectionEntityId, String dropRequestId) {
+        try {
+            return flowfileQueuesApi.getDropRequest(connectionEntityId, dropRequestId);
+        } catch (ApiException apie) {
+            LOG.error("ConnectionService.getDropEntity()",apie.getMessage());
+            return null;
+        }
+    }
+
+    public void removeExternalConnections(ProcessGroupEntity processGroupEntity)
+            throws ApiException {
         final String groupId = processGroupEntity.getComponent().getId();
 
         ProcessGroupFlowEntity flow = flowApi.getFlow(groupId);
@@ -129,16 +138,28 @@ public class ConnectionService {
             if (connection.getDestinationGroupId().equals(groupId) || connection.getSourceGroupId().equals(groupId)) {
                 //stopping source/destination
                 if (connection.getDestinationGroupId().equals(groupId)) {
-                    stopProcessorOrPort(connection.getSourceId());
+                    try {
+                        stopProcessorOrPort(connection.getSourceId());
+                    } catch (ApiException apie){
+                        apie.printStackTrace();
+                    }
                 }
                 if (connection.getSourceGroupId().equals(groupId)) {
-                    stopProcessorOrPort(connection.getDestinationId());
+                    try {
+                        stopProcessorOrPort(connection.getDestinationId());
+                    } catch (ApiException apie){
+                        apie.printStackTrace();
+                    }
                 }
 
-                connectionsApi.deleteConnection(
-                        connection.getComponent().getId(),
-                        connection.getRevision().getVersion().toString(),
-                        flowApi.generateClientId());
+                try {
+                    connectionsApi.deleteConnection(
+                            connection.getComponent().getId(),
+                            connection.getRevision().getVersion().toString(),
+                            flowApi.generateClientId());
+                } catch (ApiException apie){
+                    apie.printStackTrace();
+                }
             }
         });
     }

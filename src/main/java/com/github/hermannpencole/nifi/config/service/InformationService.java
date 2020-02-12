@@ -2,19 +2,19 @@ package com.github.hermannpencole.nifi.config.service;
 
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.FlowApi;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Service;
 
 /**
  * Created by SFRJ2737 on 2017-05-28.
  *
  * @author hermann pencolé
  */
-@Singleton
+@Service
 public class InformationService {
 
-    @Inject
+    @Autowired
     private FlowApi flowApi;
 
     /**

@@ -2,20 +2,16 @@ package com.github.hermannpencole.nifi.config;
 
 import com.github.hermannpencole.nifi.config.model.ConfigException;
 import com.github.hermannpencole.nifi.config.service.*;
+import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
-import com.github.hermannpencole.nifi.swagger.client.model.PositionDTO;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.name.Names;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Main Class
@@ -101,7 +97,7 @@ public class Main {
                         .orElseGet(() -> cmd.getOptionValue("password"));
 
                 //configure options
-                Integer timeout = cmd.hasOption("timeout") ? Integer.valueOf(cmd.getOptionValue("timeout")) : DEFAULT_TIMEOUT;
+                //Integer timeout = cmd.hasOption("timeout") ? Integer.valueOf(cmd.getOptionValue("timeout")) : DEFAULT_TIMEOUT;
                 Integer interval = cmd.hasOption("interval") ? Integer.valueOf(cmd.getOptionValue("interval")) : DEFAULT_INTERVAL;
                 Integer connectionTimeout = cmd.hasOption("connectionTimeout") ? Integer.valueOf(cmd.getOptionValue("connectionTimeout")) : DEFAULT_CONNECTIONTIMEOUT;
                 Integer readTimeout = cmd.hasOption("readTimeout") ? Integer.valueOf(cmd.getOptionValue("readTimeout")) : DEFAULT_READTIMEOUT;
@@ -110,67 +106,107 @@ public class Main {
                 String startPlace = cmd.hasOption("startPosition") ? cmd.getOptionValue("startPosition") : DEFAULT_PLACE;
                 Boolean forceMode = cmd.hasOption("force");
 
-                LOG.info(String.format("Starting config_nifi %s on mode %s", version, cmd.getOptionValue("m")));
-                String addressNifi = cmd.getOptionValue("n");
-                String fileConfiguration = cmd.getOptionValue("c");
-
-                String branch = "root";
-                if (cmd.hasOption("b")) {
-                    branch = cmd.getOptionValue("b");
-                }
-                List<String> branchList = Arrays.stream(branch.split(">")).map(String::trim).collect(Collectors.toList());
-                if (!branchList.get(0).equals("root")) {
-                    throw new ConfigException("The branch address must begin with the element 'root' ( sample : root > branch > sub-branch)");
-                }
-
-                Injector injector = getInjector(timeout, interval, placeWidth, createPosition(startPlace), forceMode);
-
-                //start
-                AccessService accessService = injector.getInstance(AccessService.class);
-                accessService.setConfiguration(addressNifi, !cmd.hasOption("noVerifySsl"), cmd.hasOption("enableDebugMode"), connectionTimeout, readTimeout, writeTimeout);
-
-                accessService.addTokenOnConfiguration(cmd.hasOption("accessFromTicket"), cmd.getOptionValue("user"), password);
-
-                InformationService infoService = injector.getInstance(InformationService.class);
-                String nifiVersion = infoService.getVersion();
-                LOG.info(String.format("Communicate with nifi %s", nifiVersion));
-
-                if ("updateConfig".equals(cmd.getOptionValue("m"))) {
-                    //Get an instance of the bean from the context
-                    UpdateProcessorService processorService = injector.getInstance(UpdateProcessorService.class);
-                    processorService.updateByBranch(branchList, fileConfiguration, cmd.hasOption("noStartProcessors"));
-                    LOG.info("The group configuration {} is updated with the file {}.", branch, fileConfiguration);
-                } else if ("extractConfig".equals(cmd.getOptionValue("m"))) {
-                    //Get an instance of the bean from the context
-                    ExtractProcessorService processorService = injector.getInstance(ExtractProcessorService.class);
-                    processorService.extractByBranch(branchList, fileConfiguration, cmd.hasOption("failOnDuplicateNames"));
-                    LOG.info("The group configuration {} is extrated on file {}", branch, fileConfiguration);
-                } else if ("deployTemplate".equals(cmd.getOptionValue("m"))) {
-                    TemplateService templateService = injector.getInstance(TemplateService.class);
-                    templateService.installOnBranch(branchList, fileConfiguration, cmd.hasOption("keepTemplate"));
-                    LOG.info("Template {} is installed on the group {}", fileConfiguration, branch);
-                } else {
-                    TemplateService templateService = injector.getInstance(TemplateService.class);
-                    templateService.undeploy(branchList);
-                    LOG.info("The group {} is deleted", branch);
-                }
+                Main m = new Main();
+                m.method();
             }
-        } catch (ApiException e) {
+        }
+        catch(ApiException e) {
             LOG.error(e.getMessage(), e);
             throw new ConfigException(e.getMessage() + ": " + e.getResponseBody(), e);
         }
     }
 
-    public static PositionDTO createPosition(String value) {
-        PositionDTO positionDTO = new PositionDTO();
-        String[] split = value.split(",");
-        if (split.length != 2) {
-            throw new ConfigException("startPlace must have format x,y whre y and y are integer");
-        }
-        positionDTO.setX(Double.valueOf(split[0]));
-        positionDTO.setY(Double.valueOf(split[1]));
-        return positionDTO;
+    @Autowired
+    private AccessService accessService;
+
+    @Autowired
+    InformationService infoService;
+
+    @Autowired
+    UpdateProcessorService processorService;
+
+    @Autowired
+    ExtractProcessorService extractProcessorService;
+
+    @Autowired
+    TemplateService templateService;
+
+    String branch = "";
+    List<String> branchList = null;
+    String command = "updateConfig";
+
+    public Main() {
+
     }
+
+    void method() throws ApiException {
+
+        Integer interval = null;//cmd.hasOption("interval") ? Integer.valueOf(cmd.getOptionValue("interval")) : DEFAULT_INTERVAL;
+        Integer connectionTimeout = null;//cmd.hasOption("connectionTimeout") ? Integer.valueOf(cmd.getOptionValue("connectionTimeout")) : DEFAULT_CONNECTIONTIMEOUT;
+        Integer readTimeout = null;//cmd.hasOption("readTimeout") ? Integer.valueOf(cmd.getOptionValue("readTimeout")) : DEFAULT_READTIMEOUT;
+        Integer writeTimeout = null;//cmd.hasOption("writeTimeout") ? Integer.valueOf(cmd.getOptionValue("writeTimeout")) : DEFAULT_WRITETIMEOUT;
+        Double placeWidth = null;//cmd.hasOption("placeWidth") ? Double.valueOf(cmd.getOptionValue("placeWidth")) : DEFAULT_PLACEWIDTH;
+        String startPlace = null;//cmd.hasOption("startPosition") ? cmd.getOptionValue("startPosition") : DEFAULT_PLACE;
+        Boolean forceMode = null;//cmd.hasOption("force");
+        Integer timeout = null;
+
+        try
+        {
+               // NifiConfigClient client = new NifiConfigClient(timeout, interval, placeWidth, FunctionUtils.createPosition(startPlace), forceMode);
+
+
+                LOG.info(String.format("Starting config_nifi %s on mode %s", version, command));
+                String addressNifi = null;//cmd.getOptionValue("n");
+                String fileConfiguration = null;//cmd.getOptionValue("c");
+
+
+
+                //Injector injector = getInjector(timeout, interval, placeWidth, FunctionUtils.createPosition(startPlace), forceMode);
+
+                //start
+                //accessService = injector.getInstance(AccessService.class);
+                accessService.setConfiguration(addressNifi, false,
+                        //!cmd.hasOption("noVerifySsl"),
+                        true,
+                        // cmd.hasOption("enableDebugMode"),
+                        connectionTimeout);
+
+                //accessService.addTokenOnConfiguration(cmd.hasOption("accessFromTicket"), cmd.getOptionValue("user"), password);
+
+                //InformationService infoService = injector.getInstance(InformationService.class);
+                String nifiVersion = infoService.getVersion();
+                LOG.info(String.format("Communicate with nifi %s", nifiVersion));
+
+                if ("updateConfig".equals(command)) {
+                    //Get an instance of the bean from the context
+                    //UpdateProcessorService processorService = injector.getInstance(UpdateProcessorService.class);
+                    processorService.updateByBranch(branchList, fileConfiguration, true);//cmd.hasOption("noStartProcessors")
+                    LOG.info("The group configuration {} is updated with the file {}.", branch, fileConfiguration);
+                } else if ("extractConfig".equals(command)) {
+                    //Get an instance of the bean from the context
+                    //ExtractProcessorService extractProcessorService = injector.getInstance(ExtractProcessorService.class);
+                    extractProcessorService.extractByBranch(branchList, fileConfiguration, true);// cmd.hasOption("failOnDuplicateNames")
+                    LOG.info("The group configuration {} is extrated on file {}", branch, fileConfiguration);
+                } else if ("deployTemplate".equals(command)) {
+                    //TemplateService templateService = injector.getInstance(TemplateService.class);
+                    templateService.installOnBranch(branchList, fileConfiguration, true);//cmd.hasOption("keepTemplate")
+                    LOG.info("Template {} is installed on the group {}", fileConfiguration, branch);
+                } else {
+                    //TemplateService templateService = injector.getInstance(TemplateService.class);
+                    templateService.undeploy(branchList);
+                    LOG.info("The group {} is deleted", branch);
+                }
+
+        } catch (ApiException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ConfigException(e.getMessage() + ": " + e.getResponseBody(), e);
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ConfigException(e.getMessage() + ": " + e.getMessage(), e);
+        }
+    }
+
+
 
     /**
      * create injector with the values pass in parameter
@@ -181,15 +217,15 @@ public class Main {
      * @param forceMode
      * @return
      */
-    public static Injector getInjector(Integer timeout, Integer interval, Double placeWidth, PositionDTO startPosition, Boolean forceMode) {
-        return Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(timeout);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(interval);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(forceMode);
-                bind(PositionDTO.class).annotatedWith(Names.named("startPosition")).toInstance(startPosition);
-                bind(Double.class).annotatedWith(Names.named("placeWidth")).toInstance(placeWidth);
-            }
-        });
-    }
+//    public static Injector getInjector(Integer timeout, Integer interval, Double placeWidth, PositionDTO startPosition, Boolean forceMode) {
+//        return Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(timeout);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(interval);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(forceMode);
+//                bind(PositionDTO.class).annotatedWith(Names.named("startPosition")).toInstance(startPosition);
+//                bind(Double.class).annotatedWith(Names.named("placeWidth")).toInstance(placeWidth);
+//            }
+//        });
+//    }
 }

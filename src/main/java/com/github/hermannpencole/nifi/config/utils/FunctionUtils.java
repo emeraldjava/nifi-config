@@ -2,6 +2,7 @@ package com.github.hermannpencole.nifi.config.utils;
 
 import com.github.hermannpencole.nifi.config.model.ConfigException;
 import com.github.hermannpencole.nifi.config.model.TimeoutException;
+import com.github.hermannpencole.nifi.swagger.client.model.PositionDTO;
 import com.github.hermannpencole.nifi.swagger.client.model.ProcessGroupEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,6 @@ public final class FunctionUtils {
         } finally {
             executor.shutdownNow();
         }
-
     }
 
     public static void runWhile(Supplier<Boolean> function, int interval) {
@@ -69,5 +69,16 @@ public final class FunctionUtils {
         return listGroup.stream()
                 .filter(item -> item.getComponent() != null && item.getComponent().getName().trim().equals(name.trim()))
                 .findFirst();
+    }
+
+    public static PositionDTO createPosition(String value) {
+        PositionDTO positionDTO = new PositionDTO();
+        String[] split = value.split(",");
+        if (split.length != 2) {
+            throw new ConfigException("startPlace must have format x,y whre y and y are integer");
+        }
+        positionDTO.setX(Double.valueOf(split[0]));
+        positionDTO.setY(Double.valueOf(split[1]));
+        return positionDTO;
     }
 }

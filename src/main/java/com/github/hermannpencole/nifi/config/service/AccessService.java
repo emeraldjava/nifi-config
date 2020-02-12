@@ -4,19 +4,18 @@ import com.github.hermannpencole.nifi.swagger.ApiClient;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.Configuration;
 import com.github.hermannpencole.nifi.swagger.client.AccessApi;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Created by SFRJ2737 on 2017-05-28.
  *
  * @author hermann pencolé
  */
-@Singleton
+@Service
 public class AccessService {
 
-    @Inject
+    @Autowired
     private AccessApi apiInstance;
 
     /**
@@ -44,22 +43,17 @@ public class AccessService {
      *
      * @param basePath
      * @param verifySsl
-     * @param debugging
+     * @param debugMode
      * @param connectionTimeout
-     * @param readTimeout
-     * @param writeTimeout
      * @throws ApiException
      */
-    public void setConfiguration(String basePath, boolean verifySsl, boolean debugging,
-                                        int connectionTimeout, int readTimeout, int writeTimeout) throws ApiException {
+    public void setConfiguration(String basePath, boolean verifySsl, boolean debugMode, int connectionTimeout) {
         ApiClient client = Configuration.getDefaultApiClient()
-        //ApiClient client = new ApiClient()
                 .setBasePath(basePath)
                 .setVerifyingSsl(verifySsl)
                 .setConnectTimeout(connectionTimeout)
-                .setReadTimeout(readTimeout)
-                .setWriteTimeout(writeTimeout)
-                .setDebugging(debugging);
+                .setDebugging(debugMode);
         Configuration.setDefaultApiClient(client);
     }
+
 }

@@ -1,5 +1,6 @@
 package com.github.hermannpencole.nifi.config.service;
 
+import com.github.hermannpencole.nifi.config.NifiClientProperties;
 import com.github.hermannpencole.nifi.config.model.ConfigException;
 import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
@@ -9,10 +10,10 @@ import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -22,7 +23,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class PortService {
 
     /**
@@ -30,23 +31,17 @@ public class PortService {
      */
     private final static Logger LOG = LoggerFactory.getLogger(PortService.class);
 
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
+    @Autowired
+    private NifiClientProperties properties;
 
-    @Named("interval")
-    @Inject
-    public Integer interval;
-
-    @Inject
+    @Autowired
     private InputPortsApi inputPortsApi;
 
-    @Inject
+    @Autowired
     private OutputPortsApi outputPortsApi;
 
-    @Inject
+    @Autowired
     private ProcessGroupsApi processGroupsApi;
-
 
     /**
      * the the state of port
@@ -98,7 +93,7 @@ public class PortService {
                 LOG.info(e.getResponseBody());
             }
             return !haveResult;
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
 
     }
 
@@ -120,7 +115,7 @@ public class PortService {
                 || c.getType() == ConnectableDTO.TypeEnum.INPUT_PORT;
     }
 
-    public PortEntity getById(String id, PortDTO.TypeEnum type) {
+    public PortEntity getById(String id, PortDTO.TypeEnum type) throws ApiException {//throws ApiException {
         if (type == PortDTO.TypeEnum.INPUT_PORT)
             return inputPortsApi.getInputPort(id);
         else
@@ -135,7 +130,7 @@ public class PortService {
      * @param type           Whether to create an input or an output port
      * @return A data transfer object representative of the state of the created port
      */
-    public PortEntity createPort(final String processGroupId, final String name, final PortDTO.TypeEnum type) {
+    public PortEntity createPort(final String processGroupId, final String name, final PortDTO.TypeEnum type) throws ApiException {
         PortEntity portEntity = new PortEntity();
         portEntity.setRevision(new RevisionDTO());
         portEntity.setComponent(new PortDTO());
@@ -148,8 +143,6 @@ public class PortService {
                 return processGroupsApi.createOutputPort(processGroupId, portEntity);
         }
     }
-
-
 
     /**
      * log the error reported by port

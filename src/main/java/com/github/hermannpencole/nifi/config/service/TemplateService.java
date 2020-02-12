@@ -2,7 +2,6 @@ package com.github.hermannpencole.nifi.config.service;
 
 import com.github.hermannpencole.nifi.config.model.ConfigException;
 import com.github.hermannpencole.nifi.config.model.TimeoutException;
-import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.FlowApi;
 import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
@@ -11,10 +10,9 @@ import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -30,7 +28,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class TemplateService {
 
     /**
@@ -41,28 +39,20 @@ public class TemplateService {
     /**
      * The processGroupService nifi.
      */
-    @Inject
+    @Autowired
     private ProcessGroupService processGroupService;
 
-    @Inject
+    @Autowired
     private ProcessGroupsApi processGroupsApi;
 
-    @Inject
+    @Autowired
     private FlowApi flowApi;
 
-    @Inject
+    @Autowired
     private TemplatesApi templatesApi;
 
-    @Inject
+    @Autowired
     private ControllerServicesService controllerServicesService;
-
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
-
-    @Named("interval")
-    @Inject
-    public Integer interval;
 
     /**
      * @param branch
@@ -131,12 +121,7 @@ public class TemplateService {
                 }
             }
         }
-
         processGroupService.delete(processGroupFlow.get().getProcessGroupFlow().getId());
-
     }
-
-
-
 
 }

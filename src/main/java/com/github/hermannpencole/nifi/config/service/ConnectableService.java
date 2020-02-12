@@ -6,15 +6,14 @@ import com.github.hermannpencole.nifi.swagger.client.model.PortDTO;
 import com.github.hermannpencole.nifi.swagger.client.model.PortEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Singleton;
+import org.springframework.stereotype.Service;
 
 /**
  * Class that offer service for process group
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ConnectableService {
 
     /**

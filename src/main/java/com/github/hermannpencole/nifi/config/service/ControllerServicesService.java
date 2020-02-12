@@ -1,15 +1,16 @@
 package com.github.hermannpencole.nifi.config.service;
 
+import com.github.hermannpencole.nifi.config.NifiClientProperties;
 import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.ControllerServicesApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,7 +23,7 @@ import static com.github.hermannpencole.nifi.swagger.client.model.ControllerServ
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ControllerServicesService {
 
     /**
@@ -30,18 +31,13 @@ public class ControllerServicesService {
      */
     private final static Logger LOG = LoggerFactory.getLogger(ControllerServicesService.class);
 
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
+    @Autowired
+    private NifiClientProperties properties;
 
-    @Named("interval")
-    @Inject
-    public Integer interval;
-
-    @Inject
+    @Autowired
     private ControllerServicesApi controllerServicesApi;
 
-    @Inject
+    @Autowired
     private ProcessorService processorService;
 
     /**
@@ -112,10 +108,15 @@ public class ControllerServicesService {
         //Wait disabled
         FunctionUtils.runWhile(()-> {
             LOG.info(" {} ({}) waiting for {}" , controllerServiceEntity.getComponent().getName(), controllerServiceEntity.getId(), state);
-            ControllerServiceEntity controllerService = controllerServicesApi.getControllerService(controllerServiceEntity.getId());
+            ControllerServiceEntity controllerService = null;
+            try {
+                controllerService = controllerServicesApi.getControllerService(controllerServiceEntity.getId());
+            } catch (ApiException apie){
+                return false;
+            }
             LOG.info(" {} ({}) is {}" , controllerService.getComponent().getName(), controllerService.getId(), controllerService.getComponent().getState());
             return !controllerService.getComponent().getState().equals(state);
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
         return controllerServiceEntityUpdate;
     }
 
@@ -123,13 +124,14 @@ public class ControllerServicesService {
         return controllerServicesApi.getControllerService(id);
     }
 
-    public void setStateReferencingControllerServices(String id, UpdateControllerServiceReferenceRequestEntity.StateEnum state) throws ApiException {
+    public void setStateReferencingControllerServices(String id, UpdateControllerServiceReferenceRequestEntity.StateEnum state) {
         FunctionUtils.runWhile(()-> {
             ControllerServiceReferencingComponentsEntity controllerServiceReferencingComponentsEntity = null;
             try {
                 //Get fresh references
                 Map<String, RevisionDTO> referencingControllerServices = getReferencingServices(id, CONTROLLERSERVICE, state.toString());
-                if (referencingControllerServices.isEmpty()) return false;
+                if (referencingControllerServices.isEmpty())
+                    return false;
                 UpdateControllerServiceReferenceRequestEntity updateControllerServiceReferenceRequestEntity = new UpdateControllerServiceReferenceRequestEntity();
                 updateControllerServiceReferenceRequestEntity.setId(id);
                 updateControllerServiceReferenceRequestEntity.setState(state);
@@ -139,13 +141,14 @@ public class ControllerServicesService {
                 LOG.info(e.getResponseBody());
                 //how obtain the real state of controllerServiceReference and don't have this bullshit trick
                 if (e.getResponseBody() == null || (!e.getResponseBody().endsWith("Current state is STOPPING") && !e.getResponseBody().endsWith("Current state is RUNNING"))) {
-                    throw e;
+                    //throw e;
+                    return true;
                 } else {
                     return false;
                 }
             }
             return controllerServiceReferencingComponentsEntity == null;
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
     }
 
 
@@ -163,7 +166,9 @@ public class ControllerServicesService {
         }
     }
 
-    public void setStateReferenceProcessors(ControllerServiceEntity controllerServiceEntityFind, UpdateControllerServiceReferenceRequestEntity.StateEnum state) throws ApiException {
+    public void setStateReferenceProcessors(ControllerServiceEntity controllerServiceEntityFind,
+                                            UpdateControllerServiceReferenceRequestEntity.StateEnum state)
+            throws ApiException {
         FunctionUtils.runWhile(()-> {
             ControllerServiceEntity controllerServiceEntity = null;
             try {
@@ -179,14 +184,16 @@ public class ControllerServicesService {
             } catch (ApiException e) {
                 LOG.info(e.getResponseBody());
                 //how obtain the real state of controllerServiceReference and don't have this bullshit trick
-                if (e.getResponseBody() == null || (!e.getResponseBody().endsWith("Current state is STOPPING") && !e.getResponseBody().endsWith("Current state is RUNNING"))) {
-                    throw e;
+                if (e.getResponseBody() == null || (!e.getResponseBody().endsWith("Current state is STOPPING")
+                        && !e.getResponseBody().endsWith("Current state is RUNNING"))) {
+                    //throw e;
+                    return true;
                 } else {
                     return false;
                 }
             }
             return (controllerServiceEntity == null);
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
 
         //be sure stop/start ALL processor
         for (String idProcessor : getReferencingServices(controllerServiceEntityFind.getId(), PROCESSOR, "ALL").keySet() ) {

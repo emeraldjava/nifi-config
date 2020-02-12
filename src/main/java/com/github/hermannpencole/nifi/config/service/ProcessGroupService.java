@@ -1,5 +1,6 @@
 package com.github.hermannpencole.nifi.config.service;
 
+import com.github.hermannpencole.nifi.config.NifiClientProperties;
 import com.github.hermannpencole.nifi.config.utils.FunctionUtils;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.FlowApi;
@@ -7,10 +8,10 @@ import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,7 @@ import static com.github.hermannpencole.nifi.config.utils.FunctionUtils.findByCo
  * <p>
  * Created by SFRJ on 01/04/2017.
  */
-@Singleton
+@Service
 public class ProcessGroupService {
 
     /**
@@ -36,36 +37,31 @@ public class ProcessGroupService {
             "Port [a-zA-Z0-9-]+ has at least one [a-z]+ " +
             "connection [a-z]+ a component outside of the Process Group. Delete this connection first.";
 
-    @Inject
+    @Autowired
     private FlowApi flowapi;
 
-    @Inject
+    @Autowired
     private ProcessGroupsApi processGroupsApi;
 
-    @Inject
+    @Autowired
     private ProcessorService processorService;
 
-    @Inject
+    @Autowired
     private PortService portService;
 
-    @Inject
+    @Autowired
     private ConnectionService connectionService;
 
-    @Named("placeWidth")
-    @Inject
-    public Double placeWidth;
+    //@Qualifier("placeWidth")
+    //@Autowired
+    public Double placeWidth = 0.0d;
 
-    @Named("startPosition")
-    @Inject
-    public PositionDTO startPosition;
+    //@Qualifier("startPosition")
+    //@Autowired
+    public PositionDTO startPosition = FunctionUtils.createPosition("1,2");
 
-    @Named("timeout")
-    @Inject
-    public Integer timeout;
-
-    @Named("interval")
-    @Inject
-    public Integer interval;
+    @Autowired
+    private NifiClientProperties properties;
     /**
      * browse nifi on branch pass in parameter
      *
@@ -93,7 +89,7 @@ public class ProcessGroupService {
      * @throws ApiException
      */
     public ProcessGroupFlowEntity createDirectory(List<String> branch) throws ApiException {
-        return  this.createDirectory(branch, null);
+        return this.createDirectory(branch, null);
     }
 
     /**
@@ -139,7 +135,7 @@ public class ProcessGroupService {
      * @param entity
      * @return
      */
-    public ProcessGroupEntity createProcessGroup(String id, ProcessGroupEntity entity) {
+    public ProcessGroupEntity createProcessGroup(String id, ProcessGroupEntity entity) throws ApiException {
         return processGroupsApi.createProcessGroup(id, entity);
     }
 
@@ -149,7 +145,7 @@ public class ProcessGroupService {
      * @param entity
      * @return
      */
-    public ProcessGroupEntity updateProcessGroup(String id, ProcessGroupEntity entity) {
+    public ProcessGroupEntity updateProcessGroup(String id, ProcessGroupEntity entity) throws ApiException {
         return processGroupsApi.updateProcessGroup(id, entity);
     }
 
@@ -284,11 +280,15 @@ public class ProcessGroupService {
         return level;
     }
 
-    private Set<ProcessGroupFlowDTO> getAllProcessGroupFlow(ProcessGroupFlowDTO processGroupFlow) {
+    private Set<ProcessGroupFlowDTO> getAllProcessGroupFlow(ProcessGroupFlowDTO processGroupFlow) { //throws ApiException {
         Set<ProcessGroupFlowDTO> result = new HashSet<>();
         result.add(processGroupFlow);
         for (ProcessGroupEntity processGroup : processGroupFlow.getFlow().getProcessGroups()) {
-            result.add(flowapi.getFlow(processGroup.getId()).getProcessGroupFlow());
+            try {
+                result.add(flowapi.getFlow(processGroup.getId()).getProcessGroupFlow());
+            } catch (ApiException apie){
+
+            }
         }
         return result;
     }
@@ -330,7 +330,7 @@ public class ProcessGroupService {
         return result;
     }
 
-    public void delete(String processGroupId) {
+    public void delete(String processGroupId) throws ApiException {
         FunctionUtils.runWhile(() -> {
             ProcessGroupEntity processGroupToRemove = null;
             ProcessGroupEntity processGroupEntity = null;
@@ -342,16 +342,21 @@ public class ProcessGroupService {
                 final String responseBody = e.getResponseBody();
                 LOG.info(responseBody);
                 if (responseBody != null && responseBody.matches(CONNECTION_EXCEPTION_REGEX) && processGroupEntity != null) {
-                    connectionService.removeExternalConnections(processGroupEntity);
+                    try {
+                        connectionService.removeExternalConnections(processGroupEntity);
+                    } catch (ApiException apie){
+                        apie.printStackTrace();
+                    }
                     //continuing the loop
                     return true;
                 }
                 if (responseBody == null || !responseBody.endsWith("is running")) {
-                    throw e;
+                    //throw e;
+                    return true;
                 }
             }
             return processGroupToRemove == null;
-        }, interval, timeout);
+        }, properties.interval, properties.timeout);
     }
 
     /**
