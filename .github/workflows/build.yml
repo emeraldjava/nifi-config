@@ -1,0 +1,22 @@
+name: build
+
+# Run workflow on commits to the `master` branch
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Java and Maven
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml

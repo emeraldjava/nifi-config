@@ -82,9 +82,9 @@
 	
   <developers>
     <developer>
-      <name>Hermann Pencolé</name>
-      <email>hermannpencole@yahoo.fr</email>
-	  <url>https://github.com/hermannpencole</url>
+      <name>emeraldjava</name>
+      <email>emeraldjava</email>
+	  <url>https://github.com/emeraldjava</url>
     </developer>
   </developers>
 
@@ -125,55 +125,55 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>com.github.hermannpencole.nifi.config.Main</Main-Class>
-                                        <Implementation-Version>${project.version}</Implementation-Version>
-                                        <Implementation-Title>${project.name}</Implementation-Title>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-							<finalName>${project.artifactId}-${project.version}-shade</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-			<plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>attach-artifacts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>
-                                        ${project.build.directory}/${project.artifactId}-${project.version}-shade.jar
-                                    </file>
-                                    <classifier>shade</classifier>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-shade-plugin</artifactId>-->
+<!--                <version>3.0.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>shade</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <transformers>-->
+<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                                    <manifestEntries>-->
+<!--                                        <Main-Class>com.github.hermannpencole.nifi.config.Main</Main-Class>-->
+<!--                                        <Implementation-Version>${project.version}</Implementation-Version>-->
+<!--                                        <Implementation-Title>${project.name}</Implementation-Title>-->
+<!--                                    </manifestEntries>-->
+<!--                                </transformer>-->
+<!--                            </transformers>-->
+<!--							<finalName>${project.artifactId}-${project.version}-shade</finalName>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--			<plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>build-helper-maven-plugin</artifactId>-->
+<!--                <version>1.2</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>attach-artifacts</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>attach-artifact</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <artifacts>-->
+<!--                                <artifact>-->
+<!--                                    <file>-->
+<!--                                        ${project.build.directory}/${project.artifactId}-${project.version}-shade.jar-->
+<!--                                    </file>-->
+<!--                                    <classifier>shade</classifier>-->
+<!--                                </artifact>-->
+<!--                            </artifacts>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
