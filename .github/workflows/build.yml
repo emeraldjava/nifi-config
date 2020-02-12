@@ -13,6 +13,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
+      # https://github.com/actions/setup-java
       - name: Install Java and Maven
         uses: actions/setup-java@v1
         with:
@@ -21,8 +22,17 @@ jobs:
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_CENTRAL_TOKEN # env variable for token in deploy
 
-      - name: Publish to Apache Maven Central
-        run: mvn -Bpackage -DskipTests deploy
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+      # https://github.com/samuelmeuli/action-maven-publish
+      - name: Release Maven package
+        uses: samuelmeuli/action-maven-publish@v1
+        with:
+          gpg_private_key: ${{ secrets.gpg_private_key }}
+          gpg_passphrase: ${{ secrets.gpg_passphrase }}
+          nexus_username: ${{ secrets.MAVEN_USERNAME }}
+          nexus_password: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+
+#      - name: Publish to Apache Maven Central
+#        run: mvn -Bpackage -DskipTests deploy
+#        env:
+#          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+#          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
