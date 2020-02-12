@@ -1,8 +1,8 @@
 
-
 # Deploy and configure Template on Nifi
+
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.hermannpencole/nifi-deploy-config.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.hermannpencole/nifi-deploy-config)
-[![Build Status](https://travis-ci.org/hermannpencole/nifi-config.svg?branch=master)](https://travis-ci.org/hermannpencole/nifi-config/)
+[![Build Status](https://github.com/emeraldjava/nifi-config/workflows/build/badge.svg)](https://github.com/emeraldjava/nifi-config)
 [![codecov](https://codecov.io/gh/hermannpencole/nifi-config/branch/master/graph/badge.svg)](https://codecov.io/gh/hermannpencole/nifi-config)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c165156aaa3242bc9a41dc6225e19706)](https://www.codacy.com/app/hermannpencole/nifi-config?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hermannpencole/nifi-config&amp;utm_campaign=Badge_Grade)
 
