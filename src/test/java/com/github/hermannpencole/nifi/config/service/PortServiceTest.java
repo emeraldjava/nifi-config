@@ -6,10 +6,6 @@ import com.github.hermannpencole.nifi.swagger.client.OutputPortsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.PortDTO;
 import com.github.hermannpencole.nifi.swagger.client.model.PortEntity;
 import com.github.hermannpencole.nifi.swagger.client.model.PortStatusDTO;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.name.Names;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -41,16 +37,16 @@ public class PortServiceTest {
      */
     @Test
     public void getByIdInputTest() throws ApiException, IOException, URISyntaxException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
-                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
-        PortService portService = injector.getInstance(PortService.class);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
+//                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
+        PortService portService = null;//injector.getInstance(PortService.class);
         PortEntity port = new PortEntity();
         port.setComponent(new PortDTO());
         port.getComponent().setId("id");
@@ -61,16 +57,16 @@ public class PortServiceTest {
 
     @Test
     public void getByIdOutputTest() throws ApiException, IOException, URISyntaxException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
-                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
-        PortService portService = injector.getInstance(PortService.class);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
+//                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
+        PortService portService = null;//injector.getInstance(PortService.class);
         PortEntity port = new PortEntity();
         port.setComponent(new PortDTO());
         port.getComponent().setId("id");
@@ -81,16 +77,16 @@ public class PortServiceTest {
 
     @Test
     public void setStateTest() throws ApiException, IOException, URISyntaxException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
-                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
-        PortService portService = injector.getInstance(PortService.class);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
+//                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
+        PortService portService = null;//injector.getInstance(PortService.class);
         PortEntity port = new PortEntity();
         port.setComponent(new PortDTO());
         port.getComponent().setId("id");
@@ -104,16 +100,16 @@ public class PortServiceTest {
 
     @Test
     public void setStateInputTest() throws ApiException, IOException, URISyntaxException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
-                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
-        PortService portService = injector.getInstance(PortService.class);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
+//                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
+        PortService portService = null;//injector.getInstance(PortService.class);
         PortEntity portStopped = new PortEntity();
         portStopped.setComponent(new PortDTO());
         portStopped.getComponent().setName("name");
@@ -136,16 +132,16 @@ public class PortServiceTest {
 
     @Test
     public void setStateOutputTest() throws ApiException, IOException, URISyntaxException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
-                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
-        PortService portService = injector.getInstance(PortService.class);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(InputPortsApi.class).toInstance(inputPortsApiMock);
+//                bind(OutputPortsApi.class).toInstance(outputPortsApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
+        PortService portService = null;// injector.getInstance(PortService.class);
         PortEntity portStopped = new PortEntity();
         portStopped.setComponent(new PortDTO());
         portStopped.getComponent().setName("name");

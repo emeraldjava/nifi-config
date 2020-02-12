@@ -5,10 +5,6 @@ import com.github.hermannpencole.nifi.swagger.client.FlowApi;
 import com.github.hermannpencole.nifi.swagger.client.ProcessGroupsApi;
 import com.github.hermannpencole.nifi.swagger.client.TemplatesApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.name.Names;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -130,20 +126,20 @@ public class TemplateServiceTest {
 
         when(processGroupsApiMock.removeProcessGroup("idProcessGroupFlow","10", null)).thenReturn(new ProcessGroupEntity());
 
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(TemplatesApi.class).toInstance(templatesApiMock);
-                bind(ProcessGroupsApi.class).toInstance(processGroupsApiMock);
-                bind(ProcessGroupService.class).toInstance(processGroupServiceMock);
-                bind(FlowApi.class).toInstance(flowApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-                bind(Double.class).annotatedWith(Names.named("placeWidth")).toInstance(1200d);
-                bind(PositionDTO.class).annotatedWith(Names.named("startPosition")).toInstance(new PositionDTO());
-            }
-        });
-        injector.getInstance(TemplateService.class).undeploy(branch);
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(TemplatesApi.class).toInstance(templatesApiMock);
+//                bind(ProcessGroupsApi.class).toInstance(processGroupsApiMock);
+//                bind(ProcessGroupService.class).toInstance(processGroupServiceMock);
+//                bind(FlowApi.class).toInstance(flowApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//                bind(Double.class).annotatedWith(Names.named("placeWidth")).toInstance(1200d);
+//                bind(PositionDTO.class).annotatedWith(Names.named("startPosition")).toInstance(new PositionDTO());
+//            }
+//        });
+//        injector.getInstance(TemplateService.class).undeploy(branch);
         verify(templatesApiMock).removeTemplate(template.getId());
         verify(processGroupServiceMock).stop(processGroupFlow.get());
         verify(processGroupServiceMock).delete(processGroupFlow.get().getProcessGroupFlow().getId());

@@ -3,10 +3,6 @@ package com.github.hermannpencole.nifi.config.service;
 import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.ControllerServicesApi;
 import com.github.hermannpencole.nifi.swagger.client.model.*;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.name.Names;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -31,15 +27,15 @@ public class ControllerServicesServiceTest {
     private ControllerServicesApi controllerServicesApiMock;
 
     @Test
-    public void updateControllerServiceTest() throws InterruptedException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(ControllerServicesApi.class).toInstance(controllerServicesApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
+    public void updateControllerServiceTest() throws InterruptedException, ApiException {
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(ControllerServicesApi.class).toInstance(controllerServicesApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
         ControllerServiceEntity controllerServiceDisabled = TestUtils.createControllerServiceEntity("id","name");
         controllerServiceDisabled.getComponent().setState(ControllerServiceDTO.StateEnum.DISABLED);
         ControllerServiceEntity controllerServiceEnabled = TestUtils.createControllerServiceEntity("id","name");
@@ -53,7 +49,7 @@ public class ControllerServicesServiceTest {
                 .thenReturn(controllerService)
                 .thenReturn(controllerServiceEnabled);
 
-        ControllerServicesService controllerServicesService = injector.getInstance(ControllerServicesService.class);
+        ControllerServicesService controllerServicesService = null;//injector.getInstance(ControllerServicesService.class);
 
         ControllerServiceDTO component = new ControllerServiceDTO();
         component.getProperties().put("key", "value");
@@ -71,14 +67,14 @@ public class ControllerServicesServiceTest {
 
     @Test
     public void setStateReferencingControllerServicesTest() throws ApiException {
-        Injector injector = Guice.createInjector(new AbstractModule() {
-            protected void configure() {
-                bind(ControllerServicesApi.class).toInstance(controllerServicesApiMock);
-                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
-                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
-                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
-            }
-        });
+//        Injector injector = Guice.createInjector(new AbstractModule() {
+//            protected void configure() {
+//                bind(ControllerServicesApi.class).toInstance(controllerServicesApiMock);
+//                bind(Integer.class).annotatedWith(Names.named("timeout")).toInstance(1);
+//                bind(Integer.class).annotatedWith(Names.named("interval")).toInstance(1);
+//                bind(Boolean.class).annotatedWith(Names.named("forceMode")).toInstance(false);
+//            }
+//        });
         when(controllerServicesApiMock.updateControllerServiceReferences(eq("id"), any())).thenReturn(new ControllerServiceReferencingComponentsEntity());
         ControllerServiceEntity reponse = new ControllerServiceEntity();
         reponse.setComponent(new ControllerServiceDTO());
@@ -92,7 +88,7 @@ public class ControllerServicesServiceTest {
         reponse.getComponent().getReferencingComponents().add(ref);
         when(controllerServicesApiMock.getControllerService("id")).thenReturn(reponse);
 
-        ControllerServicesService controllerServicesService = injector.getInstance(ControllerServicesService.class);
+        ControllerServicesService controllerServicesService = null;//injector.getInstance(ControllerServicesService.class);
         controllerServicesService.setStateReferencingControllerServices("id", UpdateControllerServiceReferenceRequestEntity.StateEnum.RUNNING);
 
         ArgumentCaptor<UpdateControllerServiceReferenceRequestEntity> updateControllerServiceReferenceRequestCapture= ArgumentCaptor.forClass(UpdateControllerServiceReferenceRequestEntity.class);

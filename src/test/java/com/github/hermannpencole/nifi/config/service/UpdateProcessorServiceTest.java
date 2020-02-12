@@ -56,7 +56,7 @@ public class UpdateProcessorServiceTest {
     ProcessGroupFlowEntity response;
 
     @Before
-    public void setup() {
+    public void setup() throws ApiException {
         response = createProcessGroupFlowEntity("idComponent", "nameComponent");
         when(processGroupServiceMock.changeDirectory(branch)).thenReturn(Optional.of(response));
         when(flowapiMock.getFlow(response.getProcessGroupFlow().getId())).thenReturn(response);

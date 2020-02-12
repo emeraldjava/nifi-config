@@ -66,7 +66,7 @@ public class ProcessGroupService {
      * browse nifi on branch pass in parameter
      *
      * @param branch
-     * @return
+     * @return Optional<ProcessGroupFlowEntity>
      * @throws ApiException
      */
     public Optional<ProcessGroupFlowEntity> changeDirectory(List<String> branch) throws ApiException {

@@ -51,7 +51,7 @@ public class ExtractProcessorServiceTest {
     private ProcessGroupFlowEntity response;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() throws IOException, ApiException {
         temp = File.createTempFile("tempfile", ".tmp");
         response = TestUtils.createProcessGroupFlowEntity("idComponent", "nameComponent");
 

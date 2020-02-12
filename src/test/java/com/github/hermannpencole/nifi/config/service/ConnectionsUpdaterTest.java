@@ -1,6 +1,7 @@
 package com.github.hermannpencole.nifi.config.service;
 
 import com.github.hermannpencole.nifi.config.model.Connection;
+import com.github.hermannpencole.nifi.swagger.ApiException;
 import com.github.hermannpencole.nifi.swagger.client.ConnectionsApi;
 import com.github.hermannpencole.nifi.swagger.client.model.ConnectionDTO;
 import com.github.hermannpencole.nifi.swagger.client.model.ConnectionEntity;
@@ -29,7 +30,7 @@ public class ConnectionsUpdaterTest {
     ConnectionsUpdater connectionsUpdater;
 
     @Test
-    public void shouldUpdateConnections() {
+    public void shouldUpdateConnections() throws ApiException {
         ConnectionEntity connectionEntityOne = createConnectionEntity("connectionOneId", "connectionOne", "sourceOne", "destOne", "1 GB", 10L);
         ConnectionEntity connectionEntityTwo = createConnectionEntity("connectionTwoId", null, "sourceTwo", "destTwo", "2 GB", 10L);
         ConnectionEntity connectionEntityThee = createConnectionEntity("connectionThreeId", "connectionThree", "sourceTwo", "destOne", "1 GB", 1L);
@@ -58,7 +59,7 @@ public class ConnectionsUpdaterTest {
     }
 
     @Test
-    public void shouldMakeNoUpdatesWhenConfigurationNotFound() {
+    public void shouldMakeNoUpdatesWhenConfigurationNotFound() throws ApiException {
         ConnectionEntity connectionEntity = createConnectionEntity("Id", "connectionName", "sourceOne", "destOne", "1 GB", 10L);
         //when
         Connection connectionConfiguration = createConnection("connectionOtherName", "sourceOne", "destOne", "1 GB", 10L, "IdOther");
