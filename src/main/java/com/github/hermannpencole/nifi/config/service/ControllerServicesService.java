@@ -49,7 +49,7 @@ public class ControllerServicesService {
      *
      * @param controllerServiceDTO component with properties to update
      * @param controllerServiceEntity controllerService with the last revision ()
-     * @return
+     * @return ControllerServiceEntity
      * @throws ApiException
      * @throws InterruptedException
      */
@@ -86,7 +86,7 @@ public class ControllerServicesService {
      *
      * @param controllerServiceEntity
      * @param state
-     * @return
+     * @return ControllerServiceEntity
      * @throws ApiException
      */
     public ControllerServiceEntity setStateControllerService(ControllerServiceEntity controllerServiceEntity, ControllerServiceDTO.StateEnum state) throws ApiException {

@@ -172,15 +172,6 @@ public class Main {
         return positionDTO;
     }
 
-    /**
-     * create injector with the values pass in parameter
-     *
-     * @param timeout
-     * @param interval
-     * @param placeWidth
-     * @param forceMode
-     * @return
-     */
     public static Injector getInjector(Integer timeout, Integer interval, Double placeWidth, PositionDTO startPosition, Boolean forceMode) {
         return Guice.createInjector(new AbstractModule() {
             protected void configure() {
